@@ -8,4 +8,7 @@ edition = "2021"
 [dependencies]
 chrono = "*"
 log = "*"
-env_logger = "0.11.3"
+simple_logger = "*"
+clap = { version = "*", features = ["derive"] }
+sha256 = "*"
+thiserror = "*"
