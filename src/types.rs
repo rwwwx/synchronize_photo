@@ -1,11 +1,11 @@
 use chrono::NaiveDate;
-use std::collections::{HashMap, HashSet};
+use std::collections::{BTreeMap, HashMap, HashSet};
 use std::fmt::Display;
 
 pub type PhotoCollection = HashSet<PhotoId>;
 pub type FriendCollections = HashMap<FriendName, PhotoCollection>;
 pub type MissingPhotos = HashMap<FriendName, PhotoCollection>;
-pub type CollectionOfMissing = HashMap<NaiveDate, MissingPhotos>;
+pub type CollectionOfMissing = BTreeMap<NaiveDate, MissingPhotos>;
 
 #[derive(Clone, Hash, Eq, PartialEq, Debug, Ord, PartialOrd)]
 pub struct PhotoId(String);

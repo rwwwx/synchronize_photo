@@ -51,7 +51,7 @@ impl PhotoSyncCli {
         let days_dir = fs_read_dir(&self.path_to_photos)
             .map_err(|_| Errors::CannotReadDirectory(self.path_to_photos.clone()))?;
 
-        let mut missing = CollectionOfMissing::with_capacity(days_dir.size_hint().0);
+        let mut missing = CollectionOfMissing::new();
 
         for day_dir in days_dir {
             let day_dir_entry = day_dir.map_err(|_| Errors::CannotGetDirEntry)?;
@@ -120,6 +120,9 @@ fn find_missing_photos_for_day(
     let mut missing_photos = HashMap::with_capacity(my_collection.len() + friend_collections.len());
 
     for (friend_name, friend_collection) in friend_collections {
+        if friend_collection.is_empty() {
+            continue
+        }
         if is_different(my_collection, friend_collection) {
             let missing = friend_collection
                 .difference(my_collection)
@@ -254,5 +257,21 @@ mod test {
         let missing_photos = find_missing_photos_for_day(&my_collection, &friend_collection, &date);
 
         assert!(dbg!(&missing_photos).is_empty())
+    }
+
+    #[test]
+    fn should_find_missing_photo_from_one_friend() {
+        let friend_collection =
+            get_friend_collection(&["1u64", "2u64", "4u64"], &[]);
+        let my_collection = get_my_collection(&["1u64", "2u64", "3u64"]);
+        let date = NaiveDate::parse_from_str("2024-04-15", "%Y-%m-%d").unwrap();
+
+        let missing_photos = find_missing_photos_for_day(&my_collection, &friend_collection, &date);
+
+        assert!(dbg!(&missing_photos).get(&FriendName::new("Lev")).is_none());
+        assert!(dbg!(&missing_photos)
+            .get(&FriendName::new("Denis"))
+            .unwrap()
+            .contains(&PhotoId::new("4u64")));
     }
 }
