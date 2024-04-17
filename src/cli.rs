@@ -121,7 +121,7 @@ fn find_missing_photos_for_day(
 
     for (friend_name, friend_collection) in friend_collections {
         if friend_collection.is_empty() {
-            continue
+            continue;
         }
         if is_different(my_collection, friend_collection) {
             let missing = friend_collection
@@ -261,8 +261,7 @@ mod test {
 
     #[test]
     fn should_find_missing_photo_from_one_friend() {
-        let friend_collection =
-            get_friend_collection(&["1u64", "2u64", "4u64"], &[]);
+        let friend_collection = get_friend_collection(&["1u64", "2u64", "4u64"], &[]);
         let my_collection = get_my_collection(&["1u64", "2u64", "3u64"]);
         let date = NaiveDate::parse_from_str("2024-04-15", "%Y-%m-%d").unwrap();
 
