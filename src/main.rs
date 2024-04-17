@@ -11,7 +11,7 @@ fn main() {
         Ok(missing) => {
             missing.iter().for_each(|(day, missing)| {
                     if missing.is_empty() {
-                        log::info!("For day {day} no difference have been found.")
+                        log::info!("For day: '{day}' no difference have been found.")
                     } else {
                         missing.iter().for_each(|(name, missing_photos)| {
                             log::info!(
