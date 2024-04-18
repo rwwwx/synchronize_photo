@@ -40,13 +40,14 @@ pub enum Errors {
 
 #[derive(Debug, Parser)]
 pub struct PhotoSyncCli {
+    #[clap(default_value = "./My")]
+    my_folder_name: String,
+
     #[clap(default_value = "./photo_example")]
     path_to_photos: PathBuf,
 }
 
 impl PhotoSyncCli {
-    const MY_FOLDER_NAME: &'static str = "My";
-
     pub fn sync_photos(&self) -> Result<CollectionOfMissing, Errors> {
         let days_dir = fs_read_dir(&self.path_to_photos)
             .map_err(|_| Errors::CannotReadDirectory(self.path_to_photos.clone()))?;
@@ -66,7 +67,7 @@ impl PhotoSyncCli {
                 let friend_dir = friend_dir.map_err(|_| Errors::CannotGetDirEntry)?;
                 let friend_name = friend_dir.file_name().to_str().unwrap().to_owned();
 
-                if friend_name == Self::MY_FOLDER_NAME {
+                if friend_name == self.my_folder_name {
                     my_collection = Self::process_day(friend_dir.path())?;
                 } else {
                     friend_collection
@@ -120,14 +121,16 @@ fn find_missing_photos_for_day(
     let mut missing_photos = HashMap::with_capacity(my_collection.len() + friend_collections.len());
 
     for (friend_name, friend_collection) in friend_collections {
-        if friend_collection.is_empty() {
+        if friend_collection.is_empty() || !is_different(my_collection, friend_collection) {
             continue;
         }
-        if is_different(my_collection, friend_collection) {
-            let missing = friend_collection
-                .difference(my_collection)
-                .cloned()
-                .collect::<PhotoCollection>();
+
+        let missing = friend_collection
+            .difference(my_collection)
+            .cloned()
+            .collect::<PhotoCollection>();
+
+        if !missing.is_empty() {
             missing_photos.insert(friend_name.clone(), missing);
         }
     }
@@ -272,5 +275,20 @@ mod test {
             .get(&FriendName::new("Denis"))
             .unwrap()
             .contains(&PhotoId::new("4u64")));
+    }
+
+    #[test]
+    fn should_not_contains_empty_element() {
+        let friend_collection = get_friend_collection(&["1u64", "2u64", "3u64"], &["1u64"]);
+        let my_collection = get_my_collection(&["1u64", "2u64"]);
+        let date = NaiveDate::parse_from_str("2024-04-15", "%Y-%m-%d").unwrap();
+
+        let missing_photos = find_missing_photos_for_day(&my_collection, &friend_collection, &date);
+
+        assert!(dbg!(&missing_photos).get(&FriendName::new("Lev")).is_none());
+        assert!(dbg!(&missing_photos)
+            .get(&FriendName::new("Denis"))
+            .unwrap()
+            .contains(&PhotoId::new("3u64")));
     }
 }
