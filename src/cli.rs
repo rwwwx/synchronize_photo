@@ -40,7 +40,7 @@ pub enum Errors {
 
 #[derive(Debug, Parser)]
 pub struct PhotoSyncCli {
-    #[clap(default_value = "./My")]
+    #[clap(default_value = "My")]
     my_folder_name: String,
 
     #[clap(default_value = "./photo_example")]
