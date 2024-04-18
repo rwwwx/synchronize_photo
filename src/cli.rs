@@ -65,7 +65,11 @@ impl PhotoSyncCli {
                 .map_err(|_| Errors::CannotReadDirectory(self.path_to_photos.clone()))?
             {
                 let friend_dir = friend_dir.map_err(|_| Errors::CannotGetDirEntry)?;
-                let friend_name = friend_dir.file_name().to_str().unwrap().to_owned();
+                let friend_name = friend_dir
+                    .file_name()
+                    .to_str()
+                    .map(ToOwned::to_owned)
+                    .ok_or(Errors::CannotGetDirEntry)?;
 
                 if friend_name == self.my_folder_name {
                     my_collection = Self::process_day(friend_dir.path())?;
