@@ -135,18 +135,16 @@ fn find_missing_photos_for_day(
             .collect::<PhotoCollection>();
 
         if !missing.is_empty() {
+            log::debug!(
+                "For day: '{}', you missing: [{:?}] - we can find it in '{}' collection.",
+                day,
+                missing,
+                friend_name,
+            );
+
             missing_photos.insert(friend_name.clone(), missing);
         }
     }
-
-    missing_photos.iter().for_each(|(name, missing_photos)| {
-        log::debug!(
-            "For day: '{}', you missing: [{:?}] - we can find it in '{}' collection.",
-            day,
-            missing_photos,
-            name,
-        )
-    });
 
     missing_photos
 }
