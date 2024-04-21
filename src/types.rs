@@ -1,8 +1,8 @@
 use chrono::NaiveDate;
-use std::collections::{BTreeMap, HashMap, HashSet};
+use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::fmt::Display;
 
-pub type PhotoCollection = HashSet<PhotoId>;
+pub type PhotoCollection = BTreeSet<PhotoId>;
 pub type FriendCollections = HashMap<FriendName, PhotoCollection>;
 pub type MissingPhotos = HashMap<FriendName, PhotoCollection>;
 pub type CollectionOfMissing = BTreeMap<NaiveDate, MissingPhotos>;

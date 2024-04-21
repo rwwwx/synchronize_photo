@@ -91,7 +91,7 @@ impl PhotoSyncCli {
     fn process_day(path_to_day: PathBuf) -> Result<PhotoCollection, Errors> {
         let photo_dir =
             fs_read_dir(&path_to_day).map_err(|_| Errors::CannotReadDirectory(path_to_day))?;
-        let mut photos_of_day = PhotoCollection::with_capacity(photo_dir.size_hint().0);
+        let mut photos_of_day = PhotoCollection::new();
 
         for photo in photo_dir {
             let photo_hash =
@@ -125,7 +125,7 @@ fn find_missing_photos_for_day(
     let mut missing_photos = HashMap::with_capacity(my_collection.len() + friend_collections.len());
 
     for (friend_name, friend_collection) in friend_collections {
-        if friend_collection.is_empty() || !is_different(my_collection, friend_collection) {
+        if !is_synchronization_needed(my_collection, friend_collection) {
             continue;
         }
 
@@ -149,16 +149,16 @@ fn find_missing_photos_for_day(
     missing_photos
 }
 
-fn is_different(collection_a: &PhotoCollection, collection_b: &PhotoCollection) -> bool {
-    collection_a
-        .symmetric_difference(collection_b)
-        .count()
-        .gt(&0)
+fn is_synchronization_needed(
+    my_collection: &PhotoCollection,
+    friend_collection: &PhotoCollection,
+) -> bool {
+    !friend_collection.is_empty() && my_collection.ne(friend_collection)
 }
 
 #[cfg(test)]
 mod test {
-    use super::find_missing_photos_for_day;
+    use super::{find_missing_photos_for_day, is_synchronization_needed};
     use crate::types::{FriendCollections, FriendName, PhotoCollection, PhotoId};
     use chrono::NaiveDate;
     use std::collections::HashMap;
@@ -292,5 +292,53 @@ mod test {
             .get(&FriendName::new("Denis"))
             .unwrap()
             .contains(&PhotoId::new("3u64")));
+    }
+
+    #[test]
+    fn should_skip_collection_ordered() {
+        use get_my_collection as get_photo_collection;
+
+        let friend_collection = get_photo_collection(&["1u64", "2u64", "3u64"]);
+        let my_collection = get_photo_collection(&["1u64", "2u64", "3u64"]);
+
+        let is_needed = is_synchronization_needed(&my_collection, &friend_collection);
+
+        assert!(!dbg!(is_needed));
+    }
+
+    #[test]
+    fn should_skip_collection_disordered() {
+        use get_my_collection as get_photo_collection;
+
+        let friend_collection = get_photo_collection(&["3u64", "2u64", "1u64"]);
+        let my_collection = get_photo_collection(&["1u64", "2u64", "3u64"]);
+
+        let is_needed = is_synchronization_needed(&my_collection, &friend_collection);
+
+        assert!(!dbg!(is_needed));
+    }
+
+    #[test]
+    fn should_not_skip_collection_ordered() {
+        use get_my_collection as get_photo_collection;
+
+        let friend_collection = get_photo_collection(&["1u64", "2u64", "3u64", "4u64"]);
+        let my_collection = get_photo_collection(&["1u64", "2u64", "3u64"]);
+
+        let is_needed = is_synchronization_needed(&my_collection, &friend_collection);
+
+        assert!(dbg!(is_needed));
+    }
+
+    #[test]
+    fn should_not_skip_collection_disordered() {
+        use get_my_collection as get_photo_collection;
+
+        let friend_collection = get_photo_collection(&["3u64", "2u64", "1u64", "4u64"]);
+        let my_collection = get_photo_collection(&["1u64", "2u64", "3u64"]);
+
+        let is_needed = is_synchronization_needed(&my_collection, &friend_collection);
+
+        assert!(dbg!(is_needed));
     }
 }
