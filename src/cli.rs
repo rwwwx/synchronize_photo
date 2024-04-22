@@ -1,10 +1,10 @@
-use std::collections::hash_map::DefaultHasher;
 use crate::types::{
     CollectionOfMissing, FriendCollections, MissingPhotos, PhotoCollection, PhotoId,
 };
 use chrono::NaiveDate;
 use clap::Parser;
 use sha256::digest as sha256_digest;
+use std::collections::hash_map::DefaultHasher;
 use std::collections::HashMap;
 use std::fs::read as fs_read;
 use std::fs::{read_dir as fs_read_dir, DirEntry};
@@ -160,7 +160,9 @@ fn is_synchronization_needed(
 
 fn get_hash(collection: &PhotoCollection) -> u64 {
     let mut hasher = DefaultHasher::new();
-    collection.iter().for_each(|element| element.hash(&mut hasher));
+    collection
+        .iter()
+        .for_each(|element| element.hash(&mut hasher));
     hasher.finish()
 }
 
