@@ -1,3 +1,4 @@
+use std::collections::hash_map::DefaultHasher;
 use crate::types::{
     CollectionOfMissing, FriendCollections, MissingPhotos, PhotoCollection, PhotoId,
 };
@@ -7,6 +8,7 @@ use sha256::digest as sha256_digest;
 use std::collections::HashMap;
 use std::fs::read as fs_read;
 use std::fs::{read_dir as fs_read_dir, DirEntry};
+use std::hash::{Hash, Hasher};
 use std::path::PathBuf;
 use thiserror::Error;
 
@@ -153,7 +155,13 @@ fn is_synchronization_needed(
     my_collection: &PhotoCollection,
     friend_collection: &PhotoCollection,
 ) -> bool {
-    !friend_collection.is_empty() && my_collection.ne(friend_collection)
+    !friend_collection.is_empty() && get_hash(my_collection).ne(&get_hash(friend_collection))
+}
+
+fn get_hash(collection: &PhotoCollection) -> u64 {
+    let mut hasher = DefaultHasher::new();
+    collection.iter().for_each(|element| element.hash(&mut hasher));
+    hasher.finish()
 }
 
 #[cfg(test)]
