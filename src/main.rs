@@ -1,7 +1,9 @@
-mod cli;
-mod types;
+mod drivers;
+mod entity;
+mod interfaces;
+mod use_cases;
 
-use crate::cli::PhotoSyncCli;
+use crate::drivers::cli::PhotoSyncCli;
 use clap::Parser;
 use simple_logger::SimpleLogger;
 
